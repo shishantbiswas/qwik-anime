@@ -64,7 +64,6 @@ const AniwatchCategories = component$(({ anime }: { anime: AniwatchHome }) => {
         <div class="flex flex-wrap gap-2">
           {anime.data.genres.map((genre, index) => (
             <Link
-              prefetch={false}
               key={genre + index}
               class=" rounded-md bg-white/10 px-2 py-1 hover:bg-red-700"
               href={`/genre/${genre.toLowerCase().replace(" ", "-")}`}
@@ -79,7 +78,6 @@ const AniwatchCategories = component$(({ anime }: { anime: AniwatchHome }) => {
         <div class="flex flex-wrap gap-2">
           {categories.map((category, index) => (
             <Link
-              prefetch={false}
               key={category + index}
               class="rounded-md bg-white/10 px-2 py-1 capitalize hover:bg-red-700"
               href={`/category/${category.toLowerCase()}`}
@@ -128,7 +126,6 @@ export const AnimeCategoryList = component$(
             <div class="flex gap-3  overflow-x-scroll px-4 scrollbar-hide">
               {data.data.animes.map((episode) => (
                 <Link
-                  prefetch={false}
                   key={episode.id}
                   href={`/watch/${episode.id}`}
                   class="group relative h-[300px] min-w-[190px] overflow-hidden rounded-md  text-end lg:w-full"

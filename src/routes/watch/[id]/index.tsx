@@ -13,10 +13,10 @@ export const head: DocumentHead = ({ resolveValue }) => {
 export const useAnime = routeLoader$(async ({ params, url, redirect }) => {
   const animeId = params.id;
   const episode = await fetchAniwatchEpisode(animeId);
-
+  
   if (!url.searchParams.get("ep")) {
     throw redirect(
-      301,
+      307,
       `/watch/${episode.data.episodes[0].episodeId}&lang=japanesse&num=1`,
     );
   }
@@ -95,11 +95,11 @@ const EpisodeSelector = component$(
             ref={ref}
             class="max-h-[70vh] w-full overflow-y-scroll rounded-lg bg-slate-500 lg:w-[500px]"
           >
-            {episode.data.episodes.map((episode, index) => (
+            {episode?.data?.episodes.map((episode, index) => (
               <Link
                 prefetch={false}
                 key={episode.episodeId}
-                href={`watch/${episode.episodeId}&lang=${audio.value}&num=${episode.number}`}
+                href={`/watch/${episode.episodeId}&lang=${audio.value}&num=${episode.number}`}
                 style={{
                   pointerEvents:
                     audio.value === "english"
@@ -112,8 +112,8 @@ const EpisodeSelector = component$(
                 <button
                   disabled={
                     audio.value === "english"
-                      ? data.data.anime.info.stats.episodes.dub < episode.number
-                      : data.data.anime.info.stats.episodes.sub < episode.number
+                      ? data.data?.anime.info.stats.episodes.dub < episode.number
+                      : data.data?.anime.info.stats.episodes.sub < episode.number
                   }
                   style={{
                     backgroundColor:
@@ -158,6 +158,7 @@ const EpisodeSelector = component$(
 );
 
 const AniwatchInfo = component$(({ data }: { data: AniwatchInfo }) => {
+  
   return (
     <div class="p-4">
       <div>
@@ -418,7 +419,7 @@ async function fetchAniwatchEpisode(animeId: string) {
       return JSON.parse(existing) as AniwatchEpisodeData;
     }
     const response = await fetch(
-      `${process.env.ANIWATCH_API}/api/v2/hianimewatch/${animeId}/episodes`,
+      `${process.env.ANIWATCH_API}/api/v2/hianime/anime/${animeId}/episodes`,
       { cache: "no-store" },
     );
     const data = (await response.json()) as AniwatchEpisodeData;
@@ -437,7 +438,7 @@ async function fetchAniwatchId(id: string): Promise<AniwatchInfo> {
       return JSON.parse(existing) as AniwatchInfo;
     }
     const response = await fetch(
-      `${process.env.ANIWATCH_API}/api/v2/hianimewatch/${id}`,
+      `${process.env.ANIWATCH_API}/api/v2/hianime/anime/${id}`,
       { cache: "no-store" },
     );
 

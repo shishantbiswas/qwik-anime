@@ -1,5 +1,10 @@
-import { component$, Resource, useResource$ } from "@builder.io/qwik";
+import {
+  component$,
+  useSignal,
+  useTask$,
+} from "@builder.io/qwik";
 import Player from "./Player";
+import { useNavigate } from "@builder.io/qwik-city";
 import { cache } from "~/lib/cache";
 
 export const AniwatchPlayer = component$(
@@ -12,12 +17,18 @@ export const AniwatchPlayer = component$(
     ep: string;
     lang: "english" | "japanesse";
   }) => {
-    const resource = useResource$(async () => {
-      // useLocation();
+    const nav = useNavigate();
+    const data = useSignal<AniwatchEpisodeSrc>();
+
+    useTask$(async ({ track }) => {
+      track(() => lang);
+      track(() => episodeId);
+      track(() => ep);
+
       if (lang === "english") {
         const server = await fetchAniwatchEpisodeServer(episodeId, ep);
 
-        return await fetchAniwatchEpisodeSrcDub(
+        data.value = await fetchAniwatchEpisodeSrcDub(
           episodeId,
           ep,
           server.data.dub[0].serverName,
@@ -25,24 +36,28 @@ export const AniwatchPlayer = component$(
       } else {
         const server = await fetchAniwatchEpisodeServer(episodeId, ep);
         if (server.data.sub.length === 0) {
-          // redirect(`/anime/${episodeId}?ep=${ep}&lang=english&num=1`)
+          await nav(`/watch/${episodeId}?ep=${ep}&lang=english&num=1`, true);
         }
 
-        return await fetchAniwatchEpisodeSrc(
+        data.value = await fetchAniwatchEpisodeSrc(
           episodeId,
           ep,
           server.data.sub[0].serverName,
         );
       }
     });
+
     return (
-      <Resource
-        onResolved={(res) => (
-          // <p>{JSON.stringify(res)}</p>
-          <Player src={`${res.data.sources[0]?.url}`} track={res.data.tracks} />
+      <div class="contents">
+        {data.value ? (
+          <Player
+            src={data.value.data.sources[0].url}
+            track={data.value.data.tracks}
+          />
+        ) : (
+          <p>Loading...</p>
         )}
-        value={resource}
-      />
+      </div>
     );
   },
 );
@@ -73,9 +88,7 @@ async function fetchAniwatchEpisodeSrcDub(
 ) {
   const cacheKey = `episode-server-dub-${id}-${ep}-${server}`;
   try {
-    const existing = cache.get(cacheKey) as
-      | string
-      | null;
+    const existing = cache.get(cacheKey) as string | null;
     if (existing) {
       return JSON.parse(existing) as AniwatchEpisodeSrc;
     }
